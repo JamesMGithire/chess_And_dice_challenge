@@ -26,13 +26,11 @@ end
 $player1 = Player.new(player1_name)
 $player2 = Player.new(player2_name)
 puts "#{player1_name} vs #{player2_name}"
-puts"Type 'yes' for ramdom colors or press Enter to select colors"
+puts"Type press Enter for ramdom colors or 'yes' to select colors"
 option = gets.chomp
 
 if !option.include?("y") && !option.include?("Y") && option != ""
     puts "Press Enter to select white or input 'black'"
-    # puts "colors can only be Black or white"
-    # puts "Player 1 color: #{$colors.sample}"
     player1_color = gets.chomp.downcase
     while !($colors.any?{|color|player1_color.include?(color.downcase)})
         puts "colors can only be Black or white"
@@ -81,6 +79,12 @@ class Chess
         @board[6] = @board[6].collect{|col|(Pawn.new("W",col)).name}
         @board.each{|r|p r}
     end
+    def continue_game?(input)
+        puts "Press Enter to play or type 'exit' to exit game"
+        puts "Continue?>>"
+        input = gets.chomp
+        input
+    end
     def start
         @current_color = "W"
         puts
@@ -101,9 +105,7 @@ class Chess
             logic_and_layout
             loop do
                 loop do
-                    # player with white color moves first
                     puts "==================================================="
-                    # puts "Press Enter to play or type 'exit' to exit game"
                     move_from_valid=move_from_method()
                     while(move_from_valid.nil?)
                         puts "ERROR : Position not in board"
@@ -159,8 +161,7 @@ class Chess
                 puts "==================================================="
                 @board.each{|r|p r}
                 @current_color = @current_color == "W" ? "B" : "W"
-                print "Continue?>>"
-                continue = gets.chomp
+                continue = continue_game?(continue)
                 puts 
                 if(continue.downcase.include?("x") || continue.downcase.include?("q"))
                     break
@@ -192,46 +193,33 @@ class Chess
                 puts "#{$player2.name} has #{$player2.points}"
                 puts
                 ($player1.points >= 1 || $player2.points >= 1) && break
-                puts "Continue?>>"
-                exit_input = gets.chomp
+                exit_input = continue_game?(exit_input)
                 current_player = current_player == $player1.name ? $player2.name : $player1.name
             end
         end
     end
-    def find_position_validity from
-        $row = @board_positions.find_index(@board_positions.find{|i|i.include?(from)})
-        $col = $row && @board_positions[$row].find_index(from)
+    def find_position_validity position
+        $row = @board_positions.find_index(@board_positions.find{|i|i.include?(position)})
+        $col = $row && @board_positions[$row].find_index(position)
         $row && $col ? (@board[$row][$col]) : nil
     end
     def possible_moves_of_piece(color,piece,current_column,current_row)
-        white_pawn_step2 = current_row=="2" ? current_column+(((current_row.to_i)+2).to_s):nil
-        black_pawn_step2 = current_row=="7" ? current_column+(((current_row.to_i)-2).to_s):nil
         possible_moves = case piece
         when "P"
-            color == "W"? Pawn.white_moves(current_column,current_row):
-                Pawn.black_moves(current_column,current_row)
+            color == "W"? Pawn.white_moves(current_column,current_row) : Pawn.black_moves(current_column,current_row)
         when"♜"
-            color == "W"? Castle.moves(current_column,current_row,"W") :
-                Castle.moves(current_column,current_row,"B")
+            Castle.moves(current_column,current_row,color)
         when"♞"
-            color == "W"? Knight.moves(current_column,current_row,"W") :
-                Knight.moves(current_column,current_row,"B")
+            Knight.moves(current_column,current_row,color)
         when"♝"
-            color == "W"? Bishop.moves(current_column,current_row,"W") :
-                Bishop.moves(current_column,current_row,"B")
+            Bishop.moves(current_column,current_row,color)
         when"♛"
-            color == "W"? Queen.moves(current_column,current_row,"W") :
-                Queen.moves(current_column,current_row,"B")
+            Queen.moves(current_column,current_row,color)
         when "♚"
-            color == "W"? King.moves(current_column,current_row,"W") :
-                King.moves(current_column,current_row,"B")
+            King.moves(current_column,current_row,color)
         end
             @game_choice == "b" && (puts "Possible moves #{possible_moves.compact}")
-        if(!(possible_moves.nil?))
-            possible_moves.compact
-        else
-            []
-        end
+        !(possible_moves.nil?) ? possible_moves.compact : []
     end
 end
 # string.split
@@ -401,9 +389,6 @@ class Castle<Piece
 end
 
 class Knight < Piece
-    def initialize(color, position)
-        super(color, position)
-    end
     def self.knight_shoveler(array_checked,color)
         array_shoveled = []
         knight_oppsite_color = color == "W" ? "B" : "W"
@@ -436,17 +421,11 @@ class Knight < Piece
     end
 end
 class Bishop < Piece
-    def initialize(color, position)
-        super(color, position)
-    end
     def self.moves(current_column,current_row,color)
         self.diagonls(current_column,current_row,color)
     end
 end
 class Queen < Piece
-    def initialize(color, position)
-        super(color, position)
-    end
     def self.moves(current_column,current_row,color)
         [
             self.diagonls(current_column,current_row,color),
@@ -455,9 +434,6 @@ class Queen < Piece
     end
 end
 class King < Piece
-    def initialize(color, position)
-        super(color, position)
-    end
     def self.moves(current_column,current_row,color)
         king_possible_moves = []
         king_oppsite_color = color == "W" ? "B" : "W"
