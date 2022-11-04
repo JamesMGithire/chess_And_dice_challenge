@@ -60,7 +60,7 @@ class Chess
     end
     def move_from_method
         puts "#{@current_color == "W"? "White" : "Black"} move: Move From..."
-        puts "(Select board position: example 'a1')"
+        puts "(Select board position: example 'd2')"
         @move_from = gets.chomp.downcase
         find_position_validity(@move_from)
     end
@@ -75,8 +75,8 @@ class Chess
         @board[-1] = @board[-1].collect{|col|col.match(/[ah]/) ? "W"+"♜("+col+")":(col.match(/[bg]/) ? "W"+"♞("+col+")" :(col.match(/[cf]/) ? "W"+"♝("+col+")": col))}
         @board[-1][3]="W♛(#{@board[-1][3]})"
         @board[-1][4]="W♚(#{@board[-1][4]})"
-        @board[1] = @board[1].collect{|col|(Pawn.new("B",col)).name}
-        @board[6] = @board[6].collect{|col|(Pawn.new("W",col)).name}
+        # @board[1] = @board[1].collect{|col|(Pawn.new("B",col)).name}
+        # @board[6] = @board[6].collect{|col|(Pawn.new("W",col)).name}
         @board.each{|r|p r}
     end
     def continue_game?(input)
@@ -111,25 +111,22 @@ class Chess
                         puts "ERROR : Position not in board"
                         move_from_valid=move_from_method()
                     end
-                    @position = @board[$row][$col]
-                    while(@position.length<6 || !@position.include?(@current_color))
-                        # puts "Empty spot"
+                    position = @board[$row][$col]
+                    while(position.length<6 || !position.include?(@current_color))
                         puts "<< Try another spot >>"
                         puts "--------------------------"
-                        move_from_method
-                        @position = @board[$row][$col]
+                        position = move_from_method
                     end
-                    # color == current player.color
-                    
+
                     def piece_moves
                         @possible_moves
                         puts "To..."
                         puts "Possible moves #{@possible_moves}"
                         @move_to = gets.chomp.downcase
                     end
+                    
                     puts "To..."
-                    @possible_moves = possible_moves_of_piece(@position[0],@position[1],@position[3],@position[4])
-                    # puts @possible_moves
+                    @possible_moves = possible_moves_of_piece( position[0], position[1], position[3], position[4])
                     @possible_moves.size!=0 && @move_to = gets.chomp.downcase
                     while(!(find_position_validity(@move_to)) && @possible_moves.size!=0)
                         puts "ERROR : Position not in board"
@@ -233,8 +230,8 @@ class Piece
         @name = color+"P("+position+")"
     end
 
-    def self.find_position_validity move
-        $new_game.find_position_validity(move)
+    def self.find_position_validity position
+        $new_game.find_position_validity(position)
     end
 
     def self.shoveler(array, awaiting_position,color)
@@ -257,13 +254,13 @@ class Piece
     def self.horizontals_and_verticals(current_column,current_row,color)
         possible_moves = []
         move_up_inc = 1
-        until self.find_position_validity("#{current_column}#{(current_row.to_i + move_up_inc)}").nil?
+        until (current_row.to_i + move_up_inc) > 8
             new_piece_position = self.find_position_validity("#{current_column}#{(current_row.to_i + move_up_inc)}")
             self.shoveler(possible_moves,new_piece_position,color)
             self.until_breaker(new_piece_position, move_up_inc, 1) ? break : (move_up_inc += 1)
         end
         move_down_inc = 1
-        until self.find_position_validity("#{current_column}#{(current_row.to_i-move_down_inc)}").nil?
+        until (current_row.to_i-move_down_inc) < 1
             new_piece_position = self.find_position_validity("#{current_column}#{(current_row.to_i-move_down_inc)}")
             self.shoveler(possible_moves,new_piece_position,color)
             self.until_breaker(new_piece_position, move_down_inc, 0) ? break : (move_down_inc += 1)
@@ -316,9 +313,6 @@ end
 class Pawn < Piece
     attr_accessor :position
     attr_reader :name
-    def initialize (color,position)
-        super(color,position)
-    end
     def self.pawn_diagonal_capture_shoveler(array,position,color)
         oppsite_color = color == "W" ? "B" : "W"
         unless position.nil?
