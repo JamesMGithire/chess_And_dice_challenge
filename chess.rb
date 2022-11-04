@@ -173,7 +173,7 @@ class Chess
                 piece_name= ["Castle/Rook", "Knight", "Bishop", "Queen", "King"].sample
                 pieces = { "Castle/Rook" => "♜", "Knight" => "♞" , "Bishop" => "♝" , "Queen" => "♛" , "King" => "♚" }
                 piece = pieces["#{piece_name}"]
-                color = ["W","B"].sample
+                color = current_player == $player1.name ? $player1.color : $player2.color
                 rand_position = @board.sample.sample
                 puts "#{color == "W"? "White" : "Black"} #{piece_name} at #{rand_position}"
                 choice_input = gets.chomp.downcase
