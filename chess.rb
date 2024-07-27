@@ -1,3 +1,14 @@
+def refresh_console
+  # Clear the console
+  print "\e[H\e[2J"
+
+  # Move the cursor to the top-left corner
+  print "\e[H"
+end
+
+
+
+
 class Player
     attr_accessor :points, :color
     attr_reader :name
@@ -54,6 +65,7 @@ class Chess
         arr.collect{|row|columns.collect{|l|"#{l+row.to_s}"}}
     end
     def initialize
+        refresh_console()
         puts "Starting chess game..."
         @board = all_spots
         @board_positions = all_spots
@@ -191,6 +203,7 @@ class Chess
                 puts
                 ($player1.points >= 1 || $player2.points >= 1) && break
                 exit_input = continue_game?(exit_input)
+                refresh_console()
                 current_player = current_player == $player1.name ? $player2.name : $player1.name
             end
         end
